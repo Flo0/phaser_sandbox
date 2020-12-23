@@ -18,24 +18,48 @@ let config = {
 
 // Load assets
 gameScene.preload = function () {
-  this.load.image("player", "assets/player.png")
+  this.moveCam = false;
+  this.load.image("player", "assets/player_base.png")
+  for (i = 1; i < 9; i++) {
+    this.load.image("grass_" + i, "assets/grass_" + i + ".png")
+  }
 }
 
 // Called once after preload ends
 gameScene.create = function () {
 //  let bg = this.add.sprite(0, 0, "background")
 //  bg.setOrigin(0, 0)
+  this.cameras.main.setBounds(-1280, -1280, 1280, 1280);
+  this.physics.world.setBounds(-1280, -1280, 1280, 1280);
 
   let entities = this.physics.add.group()
-  this.player = entities.create(config.width / 2, config.height / 2, "player").setScale(2).refreshBody()
+  this.player = entities.create(640, 640, "player")
   this.player.setCollideWorldBounds(true)
   this.player.setScale(2.0, 2.0)
   this.player.depth = 1
   this.player.dir = 1
+
+  this.cameras.main.startFollow(this.player, true)
+
+  if (this.cameras.main.deadzone)
+  {
+    const graphics = this.add.graphics().setScrollFactor(0)
+    graphics.lineStyle(2, 0x00ff00, 1)
+    graphics.strokeRect(200, 200, this.cameras.main.deadzone.width, this.cameras.main.deadzone.height)
+  }
+
   console.log(this.player)
 
   this.player.score = 0
   this.player.scoreText = this.add.text(16, 16, "Score: 0", {fontSize: "24px", fill: "#000"})
+
+  for (x = -10; x < 10; x++) {
+    for (y = -10; y < 10; y++) {
+      grass = this.add.image(x * 32, y * 32, "grass_" + Phaser.Math.Between(1, 8))
+      grass.setScale(2.0, 2.0)
+      grass.setOrigin(16, 16)
+    }
+  }
 
   /*
   let platforms = this.physics.add.staticGroup();
@@ -81,7 +105,7 @@ gameScene.create = function () {
    */
 }
 
-
+let kk = 0
 // Update
 gameScene.update = function () {
   if (this.wasd.left.isDown) {
@@ -124,11 +148,12 @@ gameScene.update = function () {
     }
   }
 
+  dx = game.input.mousePointer.x - this.player.body.position.x
+  dy = game.input.mousePointer.y - this.player.body.position.y
+  deg = Math.atan2(dy, dx)
+  this.player.angle = deg * (180 / Math.PI)
 }
 
 
 // Create a new Game and pass config
 let game = new Phaser.Game(config)
-game.scale.pageAlignHorizontally = true
-game.scale.pageAlignVertically = true
-game.scale.refresh()
